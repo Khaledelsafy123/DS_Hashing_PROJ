@@ -1,0 +1,460 @@
+# main
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class Main {
+    public static final int B = 31;
+    public static final int M = 1000000009;
+
+    public static long calculateHash(String word) {
+        long hashValue = 0;
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            hashValue = (hashValue * B + c) % M;
+        }
+        return hashValue;
+    }
+
+    public static int getIndex(String word, int size) {
+        return (int)(calculateHash(word) % size);
+    }
+
+    public static int hash2(String word, int size) {
+        return size - (int)(calculateHash(word) % size);
+    }
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        System.out.println("Choose number from list");
+        System.out.println("1 : For Quadratic");
+        System.out.println("2 : For Linear");
+        System.out.println("3 : For Separate");
+        System.out.println("4 : For Double");
+        System.out.print("\nEnter your choice : ");
+        int choice = input.nextInt();
+
+        System.out.print("Enter hash table size : ");
+        int size = input.nextInt();
+
+        if (size < 1 || size > 52) {
+            System.out.println("Error: Size must be between 1 and 52");
+            return;
+        }
+
+        int c1 = 1;
+        int c2 = 3;
+
+        LinearProbing linear = new LinearProbing(size);
+        QuadraticProbing quadratic = new QuadraticProbing(size, c1, c2);
+        DoubleHashing doubleHash = new DoubleHashing(size);
+        SeparateChaining separate = new SeparateChaining(size);
+
+        int totalCollisions = 0;
+        int wordCount = 0;
+
+        try {
+            Scanner sc = new Scanner(new File("C:/Users/Khaled Elsafy/Downloads/data.txt"));
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (!line.isEmpty()) {
+                    String word = line.toLowerCase();
+                    long hashValue = calculateHash(word);
+                    int index = getIndex(word, size);
+                    wordCount++;
+
+                    switch (choice) {
+                        case 1: {
+                            int steps = quadratic.insert(index, word);
+                            totalCollisions += steps;
+                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+                            if (steps > 0) {
+                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+                            } else {
+                                System.out.println(" [No collision]");
+                            }
+                            break;
+                        }
+                        case 2: {
+                            int steps = linear.insert(index, word);
+                            totalCollisions += steps;
+                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+                            if (steps > 0) {
+                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+                            } else {
+                                System.out.println(" [No collision]");
+                            }
+                            break;
+                        }
+                        case 3: {
+                            separate.insert(index, word);
+                            System.out.println("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+                            break;
+                        }
+                        case 4: {
+                            int index2 = hash2(word, size);
+                            int steps = doubleHash.insert(word, word);
+                            totalCollisions += steps;
+                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+                            if (steps > 0) {
+                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+                            } else {
+                                System.out.println(" [No collision]");
+                            }
+                            break;
+                        }
+                        default:
+                            System.out.println("Invalid choice.");
+                            return;
+                    }
+                }
+            }
+
+            sc.close();
+
+            if (choice != 3) {
+                System.out.println("\nTotal Collisions: " + totalCollisions);
+            } else {
+                System.out.println("\nNo Collisions in separate chaining");
+            }
+
+            System.out.println("\nHash Table:");
+            switch (choice) {
+                case 1:
+                    quadratic.display();
+                    break;
+                case 2:
+                    linear.display();
+                    break;
+                case 3:
+                    separate.printTable();
+                    break;
+                case 4:
+                    doubleHash.display();
+                    break;
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        }
+    }
+}
+//import java.io.File;
+//import java.io.FileNotFoundException;
+//import java.util.Scanner;
+//
+//public class Main {
+//    public static final int B = 31;
+//    public static final int M = 1000000009;
+//
+//    public static long calculateHash(String word) {
+//        long hashValue = 0;
+//        for (int i = 0; i < word.length(); i++) {
+//            char c = word.charAt(i);
+//            hashValue = (hashValue * B + c) % M;
+//        }
+//        return hashValue;
+//    }
+//
+//    public static int getIndex(String word, int size) {
+//        return (int)(calculateHash(word) % size);
+//    }
+//
+//    public static int hash2(String word, int size) {
+//        return size - (int)(calculateHash(word) % size);
+//    }
+//
+//    public static void main(String[] args) {
+//        Scanner input = new Scanner(System.in);
+//
+//        System.out.println("Choose number from list");
+//        System.out.println("1 : For Quadratic");
+//        System.out.println("2 : For Linear");
+//        System.out.println("3 : For Separate");
+//        System.out.println("4 : For Double");
+//        System.out.print("\nEnter your choice : ");
+//        int choice = input.nextInt();
+//
+//        System.out.print("Enter hash table size : ");
+//        int size = input.nextInt();
+//
+//        if (size < 1 || size > 52) {
+//            System.out.println("Error: Size must be between 1 and 52");
+//            return;
+//        }
+//
+//        int c1 = 1;
+//        int c2 = 3;
+//
+//        LinearProbing linear = new LinearProbing(size);
+//        QuadraticProbing quadratic = new QuadraticProbing(size, c1, c2);
+//        DoubleHashing doubleHash = new DoubleHashing(size);
+//        SeparateChaining separate = new SeparateChaining(size);
+//
+//        int totalCollisions = 0;
+//        int wordCount = 0;
+//
+//        try {
+//            Scanner sc = new Scanner(new File("C:/Users/Khaled Elsafy/Downloads/data.txt"));
+//
+//            while (sc.hasNextLine()) {
+//                String line = sc.nextLine().trim();
+//                if (!line.isEmpty()) {
+//                    String word = line.toLowerCase();
+//                    long hashValue = calculateHash(word);
+//                    int index = getIndex(word, size);
+//                    wordCount++;
+//
+//                    switch (choice) {
+//                        case 1: {
+//                            int steps = quadratic.insert(index, word);
+//                            totalCollisions += steps;
+//                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+//                            if (steps > 0) {
+//                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+//                            } else {
+//                                System.out.println(" [No collision]");
+//                            }
+//                            break;
+//                        }
+//                        case 2: {
+//                            int steps = linear.insert(index, word);
+//                            totalCollisions += steps;
+//                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+//                            if (steps > 0) {
+//                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+//                            } else {
+//                                System.out.println(" [No collision]");
+//                            }
+//                            break;
+//                        }
+//                        case 3: {
+//                            separate.insert(index, word);
+//                            System.out.println("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+//                            break;
+//                        }
+//                        case 4: {
+//                            int index2 = hash2(word, size);
+//                            int steps = doubleHash.insert(word, word);
+//                            totalCollisions += steps;
+//                            System.out.print("Inserted \"" + word + "\" | Hash = " + hashValue + " | Index = " + wordCount);
+//                            if (steps > 0) {
+//                                System.out.println(" [Collision resolved after " + steps + " probe(s)]");
+//                            } else {
+//                                System.out.println(" [No collision]");
+//                            }
+//                            break;
+//                        }
+//                        default:
+//                            System.out.println("Invalid choice.");
+//                            return;
+//                    }
+//                }
+//            }
+//
+//            sc.close();
+//
+//            if (choice != 3) {
+//                System.out.println("\nTotal Collisions: " + totalCollisions);
+//            } else {
+//                System.out.println("\nNo Collisions in separate chaining");
+//            }
+//
+//            System.out.println("\nHash Table:");
+//            switch (choice) {
+//                case 1:
+//                    quadratic.display();
+//                    break;
+//                case 2:
+//                    linear.display();
+//                    break;
+//                case 3:
+//                    separate.printTable();
+//                    break;
+//                case 4:
+//                    doubleHash.display();
+//                    break;
+//            }
+//
+//        } catch (FileNotFoundException e) {
+//            System.out.println("File not found");
+//        }
+//    }
+//}
+
+
+# Linear
+
+public class LinearProbing {
+    private final String[] table;
+    private final int size;
+    public int lastIndex = -1;
+
+    public LinearProbing(int size) {
+        this.size = size;
+        table = new String[size];
+    }
+
+    public int insert(int index, String word) {
+        int steps = 0;
+        int originalIndex = index;
+        while (table[index] != null) {
+            steps++;
+            index = (index + 1) % size;
+            if (index == originalIndex) {
+                return steps;
+            }
+        }
+        table[index] = word;
+        lastIndex = index;
+        return steps; 
+    }
+
+    public void display() {
+        for (int i = 0; i < size; i++) {
+            System.out.println("Index " + i + ": " + (table[i] == null ? "null" : table[i]));
+        }
+    }
+}
+
+
+# Double
+
+public class DoubleHashing {
+    private final String[] table;
+    private final int size;
+    public int lastIndex = -1;
+
+    public DoubleHashing(int size) {
+        this.size = size;
+        table = new String[size];
+    }
+
+    public int hash1(char c) {
+        return c % size;
+    }
+
+    public int hash2(char c) {
+        
+        return 97 - (c % 97);
+    }
+
+    public int insert(char c, String word) {
+        int steps = 0;
+        int index = hash1(c);
+        int stepSize = hash2(c);
+        int originalIndex = index;
+
+        while (table[index] != null) {
+            steps++;
+            index = (index + stepSize) % size;
+            if (index == originalIndex) {
+              
+                System.out.println("Double Hashing: Hash table is full, couldn't insert \"" + word + "\"");
+                return steps;
+            }
+        }
+
+        table[index] = word;
+        lastIndex = index;
+        return steps;
+    }
+
+    public void display() {
+        for (int i = 0; i < size; i++) {
+            System.out.println("Index " + i + ": " + (table[i] == null ? "null" : table[i]));
+        }
+    }
+
+    int insert(String word, int hash2) {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    int insert(String word, String word0) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+}
+
+
+# Quadratic
+
+public class QuadraticProbing {
+    private final String[] table;
+    private final int size;
+    public int lastIndex = -1;
+    private final int c1;
+    private final int c2;
+
+    public QuadraticProbing(int size, int c1, int c2) {
+        this.size = size;
+        this.table = new String[size];
+        this.c1 = c1;
+        this.c2 = c2;
+    }
+
+    public int insert(int index, String word) {
+        int i = 0;
+        int steps = 0;
+
+        while (i < size) {
+            int newIndex = (index + c1 * i + c2 * i * i) % size;
+            if (table[newIndex] == null) {
+                table[newIndex] = word;
+                lastIndex = newIndex;
+                return steps; 
+            } else {
+                steps++;
+                i++;
+            }
+        }
+        System.out.println("Quadratic Probing: Hash table is full, couldn't insert \"" + word + "\"");
+        return steps;
+    }
+
+    public void display() {
+        for (int i = 0; i < size; i++) {
+            System.out.println(i + ": " + (table[i] == null ? "null" : table[i]));
+        }
+    }
+}
+
+
+# separate
+
+
+import java.util.LinkedList;
+
+public class SeparateChaining {
+    private final LinkedList<String>[] table;
+    private final int size;
+
+    @SuppressWarnings("unchecked")
+    public SeparateChaining(int size) {
+        this.size = size;
+        table = new LinkedList[size];
+        for (int i = 0; i < size; i++) {
+            table[i] = new LinkedList<>();
+        }
+    }
+
+    public void insert(int index, String word) {
+        table[index].add(word);
+    }
+
+    public int getCollisionCount(int index) {
+        return Math.max(0, table[index].size() - 1);
+    }
+
+    public void printTable() {
+        for (int i = 0; i < size; i++) {
+            System.out.print("Index " + i + ": ");
+            if (table[i].isEmpty()) {
+                System.out.println("null");
+            } else {
+                System.out.println(table[i]);
+            }
+        }
+    }
+}
